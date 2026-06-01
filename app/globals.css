@@ -1,26 +1,178 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: dark;
+  }
+
+  * {
+    border-color: theme('colors.border.subtle');
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: theme('colors.bg.primary');
+    color: theme('colors.text.primary');
+    font-family: var(--font-geist-sans), system-ui, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display), system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #2a2a3d;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3a3a55;
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a3d transparent;
+  }
+
+  /* Focus ring */
+  :focus-visible {
+    outline: 2px solid theme('colors.accent.DEFAULT');
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Reusable glass card */
+  .glass-card {
+    @apply bg-bg-card border border-border-subtle rounded-xl;
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  .glass-card:hover {
+    box-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(108, 99, 255, 0.2);
+  }
+
+  /* Accent button */
+  .btn-accent {
+    @apply bg-accent text-white font-medium rounded-lg px-5 py-2.5 text-sm
+    transition-all duration-200 hover:bg-accent-hover active:scale-95
+    disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    @apply border border-border-default text-text-secondary font-medium rounded-lg px-5 py-2.5 text-sm
+    transition-all duration-200 hover:bg-bg-hover hover:text-text-primary hover:border-border-strong
+    active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #fff 0%, #9b9ab0 100%);
+  }
+
+  .gradient-text-accent {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #6c63ff 0%, #a78bfa 100%);
+  }
+
+  /* Grid background */
+  .bg-grid {
+    background-image:
+      linear-gradient(rgba(108, 99, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(108, 99, 255, 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  /* Glow orb */
+  .glow-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+  }
+
+  /* Chat bubble */
+  .chat-bubble-user {
+    @apply bg-accent/20 border border-accent/30 text-text-primary rounded-2xl rounded-tr-sm px-4 py-3;
+  }
+
+  .chat-bubble-ai {
+    @apply bg-bg-tertiary border border-border-subtle text-text-primary rounded-2xl rounded-tl-sm px-4 py-3;
+  }
+
+  /* Badge */
+  .badge {
+    @apply text-xs font-medium px-2.5 py-1 rounded-full border;
+  }
+
+  /* Input */
+  .input-dark {
+    @apply bg-bg-tertiary border border-border-default rounded-lg px-4 py-2.5 text-sm
+    text-text-primary placeholder:text-text-muted
+    focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30
+    transition-colors duration-200 w-full;
+  }
+
+  /* Textarea */
+  .textarea-dark {
+    @apply bg-bg-tertiary border border-border-default rounded-lg px-4 py-3 text-sm
+    text-text-primary placeholder:text-text-muted
+    focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30
+    transition-colors duration-200 w-full resize-none;
+  }
+
+  /* Shimmer loading */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      theme('colors.bg.card') 25%,
+      theme('colors.bg.hover') 50%,
+      theme('colors.bg.card') 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display), system-ui, sans-serif;
+  }
+
+  .font-mono {
+    font-family: var(--font-geist-mono), monospace;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
 }
