@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { Syne } from "next/font/google";
+import { Geist, Geist_Mono, Syne } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 
@@ -14,9 +13,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Display font for headings — sharp, modern, techy
 const syne = Syne({
-  variable: "--font-display",
+  variable: "--font-display-syne",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
 });
@@ -47,9 +45,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${syne.variable} antialiased bg-bg-primary text-text-primary min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} ${syne.variable}`}
       >
         <AuthProvider>{children}</AuthProvider>
       </body>
