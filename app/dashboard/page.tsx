@@ -134,7 +134,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 p-1 bg-bg-secondary rounded-xl border border-border-subtle w-fit mb-6">
+        <div className="flex items-center gap-1 p-1 bg-bg-secondary rounded-xl border border-border-subtle w-full sm:w-fit mb-6 overflow-x-auto">
           {[
             {
               key: "preset",
@@ -168,14 +168,14 @@ export default function DashboardPage() {
                 setSearch("");
               }}
               className={clsx(
-                "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                "flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex-1 sm:flex-none whitespace-nowrap",
                 activeTab === key
                   ? "bg-bg-card text-text-primary border border-border-default shadow-sm"
                   : "text-text-secondary hover:text-text-primary",
               )}
             >
               <Icon size={14} />
-              {label}
+              <span className="hidden xs:inline sm:inline">{label}</span>
               <span
                 className={clsx(
                   "text-xs px-1.5 py-0.5 rounded-full",
