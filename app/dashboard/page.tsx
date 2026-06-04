@@ -7,17 +7,17 @@ import Navbar from "@/components/Navbar";
 import ScenarioCard from "@/components/ScenarioCard";
 import AuthModal from "@/components/AuthModal";
 import { useAuth } from "@/contexts/AuthContext";
-import { getUserScenarios } from "@/lib/firebase";
+import { getUserScenarios, getPublicScenarios } from "@/lib/firebase";
 import { PRESET_SCENARIOS, CATEGORY_META } from "@/lib/scenarios";
 import type { Scenario } from "@/types";
 import {
   Plus,
   Loader2,
-  LayoutGrid,
   Sparkles,
   Search,
   SlidersHorizontal,
   BookOpen,
+  Globe,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -31,18 +31,20 @@ export default function DashboardPage() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [customScenarios, setCustomScenarios] = useState<Scenario[]>([]);
   const [customLoading, setCustomLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"preset" | "custom">("preset");
+  const [activeTab, setActiveTab] = useState<"preset" | "custom" | "public">(
+    "preset",
+  );
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
   const [difficultyFilter, setDifficultyFilter] =
     useState<DifficultyFilter>("all");
   const [search, setSearch] = useState("");
+  const [publicScenarios, setPublicScenarios] = useState<Scenario[]>([]);
+  const [publicLoading, setPublicLoading] = useState(false);
 
-  // Redirect unauthenticated after load
   useEffect(() => {
     if (!loading && !user) setAuthModalOpen(true);
   }, [loading, user]);
 
-  // Load custom scenarios
   useEffect(() => {
     if (!user) return;
     setCustomLoading(true);
@@ -51,15 +53,26 @@ export default function DashboardPage() {
       .finally(() => setCustomLoading(false));
   }, [user]);
 
+  useEffect(() => {
+    setPublicLoading(true);
+    getPublicScenarios()
+      .then(setPublicScenarios)
+      .finally(() => setPublicLoading(false));
+  }, []);
+
   function refreshCustom() {
     if (!user) return;
     getUserScenarios(user.uid).then(setCustomScenarios);
   }
 
-  // Filter logic
-  const filtered = (
-    activeTab === "preset" ? PRESET_SCENARIOS : customScenarios
-  ).filter((s) => {
+  const activeScenarios =
+    activeTab === "preset"
+      ? PRESET_SCENARIOS
+      : activeTab === "public"
+        ? publicScenarios
+        : customScenarios;
+
+  const filtered = activeScenarios.filter((s) => {
     const matchCat = categoryFilter === "all" || s.category === categoryFilter;
     const matchDiff =
       difficultyFilter === "all" || s.difficulty === difficultyFilter;
@@ -130,6 +143,12 @@ export default function DashboardPage() {
               count: PRESET_SCENARIOS.length,
             },
             {
+              key: "public",
+              label: "Library",
+              icon: Globe,
+              count: publicScenarios.length,
+            },
+            {
               key: "custom",
               label: "My Scenarios",
               icon: Sparkles,
@@ -143,7 +162,7 @@ export default function DashboardPage() {
                   setAuthModalOpen(true);
                   return;
                 }
-                setActiveTab(key as "preset" | "custom");
+                setActiveTab(key as "preset" | "custom" | "public");
                 setCategoryFilter("all");
                 setDifficultyFilter("all");
                 setSearch("");
@@ -173,7 +192,6 @@ export default function DashboardPage() {
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          {/* Search */}
           <div className="relative flex-1 max-w-sm">
             <Search
               size={14}
@@ -188,8 +206,7 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Category filter */}
-          {activeTab === "preset" && (
+          {(activeTab === "preset" || activeTab === "public") && (
             <div className="flex items-center gap-2 flex-wrap">
               <SlidersHorizontal size={14} className="text-text-muted" />
               {(["all", "frontend", "backend", "designer"] as const).map(
@@ -215,7 +232,6 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Difficulty filter */}
           <div className="flex items-center gap-2">
             {(["all", "junior", "mid", "senior"] as const).map((diff) => (
               <button
@@ -257,6 +273,10 @@ export default function DashboardPage() {
           <div className="flex items-center justify-center py-24">
             <Loader2 size={20} className="animate-spin text-accent" />
           </div>
+        ) : activeTab === "public" && publicLoading ? (
+          <div className="flex items-center justify-center py-24">
+            <Loader2 size={20} className="animate-spin text-accent" />
+          </div>
         ) : activeTab === "custom" && customScenarios.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="w-14 h-14 rounded-2xl bg-bg-tertiary border border-border-default flex items-center justify-center mb-4">
@@ -276,6 +296,18 @@ export default function DashboardPage() {
               <Plus size={15} />
               Create scenario
             </Link>
+          </div>
+        ) : activeTab === "public" && publicScenarios.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-bg-tertiary border border-border-default flex items-center justify-center mb-4">
+              <Globe size={22} className="text-text-muted" />
+            </div>
+            <h3 className="font-display font-semibold text-text-primary mb-2">
+              No public scenarios yet
+            </h3>
+            <p className="text-sm text-text-secondary max-w-xs">
+              Be the first! Create a scenario and toggle it public when saving.
+            </p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
