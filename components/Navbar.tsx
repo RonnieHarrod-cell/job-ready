@@ -252,7 +252,7 @@ export default function Navbar() {
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setBugModalOpen(false)}
           />
-          <div className="relative w-full max-w-md glass-card p-6 animate-slide-up space-y-4">
+          <div className="relative w-full max-w-md glass-card p-6 animate-slide-up space-y-4 overflow-y-auto max-h-[90vh]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-status-error/15 border border-status-error/25 flex items-center justify-center">
