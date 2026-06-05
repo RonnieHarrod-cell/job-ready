@@ -19,7 +19,6 @@ import {
   Loader2,
 } from "lucide-react";
 import clsx from "clsx";
-import { div } from "framer-motion/client";
 
 const NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -123,6 +122,15 @@ export default function Navbar() {
             <div className="w-8 h-8 rounded-full shimmer" />
           ) : user ? (
             <>
+              {/* Bug report button */}
+              <button
+                onClick={() => setBugModalOpen(true)}
+                className="p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover border border-border-subtle transition-colors"
+                title="Report a bug"
+              >
+                <Bug size={15} />
+              </button>
+              
               {/* Avatar dropdown */}
               <div className="relative" ref={dropdownRef}>
                 <button
