@@ -83,7 +83,7 @@ export default function LandingPage() {
           <h1 className="font-display text-5xl sm:text-6xl md:text-7xl font-bold text-text-primary leading-[1.05] tracking-tight mb-6 animate-slide-up">
             Ace your next
             <br />
-            <span className="gradient-text-accent">interview</span>
+            <span className="gradient-text-accent">job interview</span>
           </h1>
 
           <p className="text-lg text-text-secondary max-w-xl mx-auto mb-10 leading-relaxed animate-slide-up text-balance">
