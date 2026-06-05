@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
-import { getBugReports, updateBugStatus } from "@/lib/firebase";
+import {
+  getBugReports,
+  updateBugStatus,
+  deleteBugReport,
+} from "@/lib/firebase";
 import type { BugReport } from "@/types";
 import {
   Bug,
@@ -14,6 +18,7 @@ import {
   AlertCircle,
   ExternalLink,
   RefreshCw,
+  Trash2,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -46,8 +51,8 @@ export default function IssuesPage() {
     "all",
   );
   const [updating, setUpdating] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
-  // Auth + role check
   if (!loading && (!user || profile?.role !== "developer")) {
     notFound();
   }
@@ -72,6 +77,14 @@ export default function IssuesPage() {
     await updateBugStatus(bugId, status);
     setBugs((prev) => prev.map((b) => (b.id === bugId ? { ...b, status } : b)));
     setUpdating(null);
+  }
+
+  async function handleDelete(bugId: string) {
+    if (!confirm("Delete this bug report permanently?")) return;
+    setDeleting(bugId);
+    await deleteBugReport(bugId);
+    setBugs((prev) => prev.filter((b) => b.id !== bugId));
+    setDeleting(null);
   }
 
   const filtered =
@@ -182,8 +195,6 @@ export default function IssuesPage() {
                       })}
                     </p>
                   </div>
-
-                  {/* Status badge */}
                   <span
                     className={clsx(
                       "badge flex-shrink-0",
@@ -211,31 +222,46 @@ export default function IssuesPage() {
                   <span className="truncate max-w-xs">{bug.url}</span>
                 </a>
 
-                {/* Status controls */}
-                <div className="flex items-center gap-2 pt-1 border-t border-border-subtle flex-wrap">
-                  <span className="text-xs text-text-muted mr-1">
-                    Set status:
-                  </span>
-                  {(["open", "in-progress", "resolved"] as const).map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => handleStatusChange(bug.id, s)}
-                      disabled={bug.status === s || updating === bug.id}
-                      className={clsx(
-                        "badge transition-all capitalize",
-                        bug.status === s
-                          ? STATUS_META[s].color
-                          : "bg-bg-hover text-text-muted border-border-subtle hover:border-border-default disabled:opacity-40",
-                      )}
-                    >
-                      {updating === bug.id && bug.status !== s ? (
-                        <Loader2 size={10} className="animate-spin" />
-                      ) : (
-                        STATUS_META[s].icon
-                      )}
-                      {s}
-                    </button>
-                  ))}
+                {/* Status controls + delete */}
+                <div className="flex items-center justify-between pt-1 border-t border-border-subtle flex-wrap gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-text-muted mr-1">
+                      Set status:
+                    </span>
+                    {(["open", "in-progress", "resolved"] as const).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => handleStatusChange(bug.id, s)}
+                        disabled={bug.status === s || updating === bug.id}
+                        className={clsx(
+                          "badge transition-all capitalize",
+                          bug.status === s
+                            ? STATUS_META[s].color
+                            : "bg-bg-hover text-text-muted border-border-subtle hover:border-border-default disabled:opacity-40",
+                        )}
+                      >
+                        {updating === bug.id && bug.status !== s ? (
+                          <Loader2 size={10} className="animate-spin" />
+                        ) : (
+                          STATUS_META[s].icon
+                        )}
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => handleDelete(bug.id)}
+                    disabled={deleting === bug.id}
+                    className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg text-status-error hover:bg-status-error/10 border border-transparent hover:border-status-error/25 transition-all disabled:opacity-40"
+                  >
+                    {deleting === bug.id ? (
+                      <Loader2 size={11} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={11} />
+                    )}
+                    Delete
+                  </button>
                 </div>
               </div>
             ))}

@@ -186,3 +186,7 @@ export async function updateBugStatus(
 ) {
     await updateDoc(doc(db, "bugs", bugId), { status });
 }
+
+export async function deleteBugReport(bugId: string) {
+  await deleteDoc(doc(db, "bugs", bugId));
+}
