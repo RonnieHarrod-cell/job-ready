@@ -42,5 +42,17 @@ export interface UserProfile {
     photoURL?: string;
     createdAt: number;
     sessionsCompleted: number;
-    customScenarios: string[]; // scenario ids
+    customScenarios: string[];
+    role?: "user" | "developer";
+}
+
+export interface BugReport {
+    id: string;
+    title: string;
+    description: string;
+    url: string;
+    status: "open" | "in-progress" | "resolved";
+    createdBy: string;
+    createdByEmail: string;
+    createdAt: number;
 }

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { submitBugReport } from "@/lib/firebase";
 import {
   LayoutDashboard,
   Plus,
@@ -13,8 +14,12 @@ import {
   Menu,
   X,
   Zap,
+  Bug,
+  CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import clsx from "clsx";
+import { div } from "framer-motion/client";
 
 const NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -28,6 +33,11 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [bugModalOpen, setBugModalOpen] = useState(false);
+  const [bugTitle, setBugTitle] = useState("");
+  const [bugDesc, setBugDesc] = useState("");
+  const [bugSubmitting, setBugSubmitting] = useState(false);
+  const [bugSuccess, setBugSuccess] = useState(false);
 
   // close dropdown on outside click
   useEffect(() => {
@@ -52,6 +62,26 @@ export default function Navbar() {
     await signOut();
     setDropdownOpen(false);
     router.push("/");
+  }
+
+  async function handleBugSubmit() {
+    if (!bugTitle.trim() || !bugDesc.trim() || !user) return;
+    setBugSubmitting(true);
+    await submitBugReport({
+      title: bugTitle,
+      description: bugDesc,
+      url: window.location.href,
+      createdBy: user.uid,
+      createdByEmail: user.email ?? "",
+    });
+    setBugSubmitting(false);
+    setBugSuccess(true);
+    setBugTitle("");
+    setBugDesc("");
+    setTimeout(() => {
+      setBugSuccess(false);
+      setBugModalOpen(false);
+    }, 2000);
   }
 
   return (
@@ -199,6 +229,100 @@ export default function Navbar() {
               </Link>
             ))}
           </nav>
+        </div>
+      )}
+
+      {/* Bug report modal */}
+      {bugModalOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.currentTarget === e.target) setBugModalOpen(false);
+          }}
+        >
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setBugModalOpen(false)}
+          />
+          <div className="relative w-full max-w-md glass-card p-6 animate-slide-up space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-status-error/15 border border-status-error/25 flex items-center justify-center">
+                  <Bug size={15} className="text-status-error" />
+                </div>
+                <h2 className="font-display font-semibold text-text-primary">
+                  Report a bug
+                </h2>
+              </div>
+              <button
+                onClick={() => setBugModalOpen(false)}
+                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            {bugSuccess ? (
+              <div className="flex flex-col items-center justify-center py-6 text-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-status-success/15 border border-status-success/25 flex items-center justify-center">
+                  <CheckCircle2 size={18} className="text-status-success" />
+                </div>
+                <p className="text-sm font-medium text-text-primary">
+                  Bug reported, thanks!
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-text-secondary uppercase tracking-wide">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Short description of the issue"
+                    value={bugTitle}
+                    onChange={(e) => setBugTitle(e.target.value)}
+                    className="input-dark"
+                    maxLength={80}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-text-secondary uppercase tracking-wide">
+                    Details
+                  </label>
+                  <textarea
+                    placeholder="What happened? What did you expect to happen?"
+                    value={bugDesc}
+                    onChange={(e) => setBugDesc(e.target.value)}
+                    className="textarea-dark"
+                    rows={4}
+                  />
+                </div>
+                <div className="flex gap-3 pt-1">
+                  <button
+                    onClick={() => setBugModalOpen(false)}
+                    className="btn-ghost flex-1"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleBugSubmit}
+                    disabled={
+                      !bugTitle.trim() || !bugDesc.trim() || bugSubmitting
+                    }
+                    className="btn-accent flex-1 flex items-center justify-center gap-2"
+                  >
+                    {bugSubmitting ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Bug size={14} />
+                    )}
+                    {bugSubmitting ? "Submitting..." : "Submit"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
     </header>
