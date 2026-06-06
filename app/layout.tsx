@@ -37,6 +37,14 @@ export const metadata: Metadata = {
     description: "Ace your next technical interview with AI-powered practice.",
     type: "website",
   },
+  icons: {
+    apple: "/logo-512.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Job Ready",
+  },
 };
 
 export default function RootLayout({
