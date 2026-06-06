@@ -198,20 +198,23 @@ export default function ChatInterface({ scenario, code }: ChatInterfaceProps) {
       });
       const data = await res.json();
       setFeedback(data.feedback);
+    } catch {
+      setFeedback("Unable to generate feedback at this time.");
+    } finally {
+      setFeedbackLoading(false);
+    }
 
-      // Save to Firestore
+    try {
       const id = await saveSession({
         scenarioId: scenario.id,
         userId: user.uid,
         messages: messages.map((m) => ({ ...m, codeSnapshot: code })),
         startedAt: messages[0]?.timestamp ?? Date.now(),
-        feedback: data.feedback,
+        feedback: feedback ?? "",
       });
       setSessionId(id);
-    } catch {
-      setFeedback("Unable to generate feedback at this time.");
-    } finally {
-      setFeedbackLoading(false);
+    } catch (err) {
+      console.error("Failed to save session:", err);
     }
   }
 
