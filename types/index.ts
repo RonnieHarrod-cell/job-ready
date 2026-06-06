@@ -35,6 +35,8 @@ export interface InterviewSession {
     score?: number;
 }
 
+export type Rank = "E" | "D" | "C" | "B" | "A" | "S" | "SS" | "SSS";
+
 export interface UserProfile {
     uid: string;
     email: string;
@@ -44,6 +46,9 @@ export interface UserProfile {
     sessionsCompleted: number;
     customScenarios: string[];
     role?: "user" | "developer";
+    xp: number;
+    rank: Rank;
+    lastSessionDate?: string;
 }
 
 export interface BugReport {
