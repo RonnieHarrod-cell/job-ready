@@ -19,7 +19,8 @@ import {
   Bot,
   User,
 } from "lucide-react";
-import type { Message, Scenario } from "@/types";
+import type { Message, Scenario, Rank } from "@/types";
+import XPToast from "@/components/XPToast";
 import clsx from "clsx";
 
 interface ChatInterfaceProps {
@@ -44,6 +45,12 @@ export default function ChatInterface({ scenario, code }: ChatInterfaceProps) {
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [xpToast, setXpToast] = useState<{
+    xpAwarded: number;
+    breakdown: { label: string; xp: number }[];
+    newRank: Rank;
+    rankedUp: boolean;
+  } | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -187,6 +194,8 @@ export default function ChatInterface({ scenario, code }: ChatInterfaceProps) {
     setSessionEnded(true);
     setFeedbackLoading(true);
 
+    let feedbackText = "";
+
     try {
       const res = await fetch("/api/feedback", {
         method: "POST",
@@ -197,7 +206,8 @@ export default function ChatInterface({ scenario, code }: ChatInterfaceProps) {
         }),
       });
       const data = await res.json();
-      setFeedback(data.feedback);
+      feedbackText = data.feedback;
+      setFeedback(feedbackText);
     } catch {
       setFeedback("Unable to generate feedback at this time.");
     } finally {
@@ -205,14 +215,20 @@ export default function ChatInterface({ scenario, code }: ChatInterfaceProps) {
     }
 
     try {
-      const id = await saveSession({
+      const result = await saveSession({
         scenarioId: scenario.id,
         userId: user.uid,
         messages: messages.map((m) => ({ ...m, codeSnapshot: code })),
         startedAt: messages[0]?.timestamp ?? Date.now(),
-        feedback: feedback ?? "",
+        feedback: feedbackText,
       });
-      setSessionId(id);
+      setSessionId(result.sessionId);
+      setXpToast({
+        xpAwarded: result.xpAwarded,
+        breakdown: result.breakdown,
+        newRank: result.newRank,
+        rankedUp: result.rankedUp,
+      });
     } catch (err) {
       console.error("Failed to save session:", err);
     }
@@ -382,6 +398,12 @@ export default function ChatInterface({ scenario, code }: ChatInterfaceProps) {
           </button>
         )}
       </div>
+      {xpToast && (
+        <XPToast
+          {...xpToast}
+          onClose={() => setXpToast(null)}
+        />
+      )}
     </div>
   );
 }

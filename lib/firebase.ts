@@ -19,7 +19,6 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
-  serverTimestamp,
   orderBy,
 } from "firebase/firestore";
 import type {
@@ -27,7 +26,24 @@ import type {
   Scenario,
   InterviewSession,
   BugReport,
+  Rank,
 } from "@/types";
+import {
+  getRankFromXP,
+  calculateSessionXP,
+} from "@/lib/ranks";
+
+const PRESET_SCENARIO_IDS = [
+  "frontend-react-junior",
+  "frontend-react-senior",
+  "frontend-css-junior",
+  "backend-node-junior",
+  "backend-node-senior",
+  "backend-python-junior",
+  "designer-ux-junior",
+  "designer-ux-senior",
+  "designer-ui-junior",
+];
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -72,6 +88,9 @@ export async function ensureUserProfile(user: User) {
       createdAt: Date.now(),
       sessionsCompleted: 0,
       customScenarios: [],
+      role: "user",
+      xp: 0,
+      rank: "E",
     };
     await setDoc(ref, profile);
   }
@@ -136,18 +155,39 @@ export async function deleteScenario(scenarioId: string, uid: string) {
 
 // sessions
 export async function saveSession(
-  session: Omit<InterviewSession, "id">,
-): Promise<string> {
+  session: Omit<InterviewSession, "id">
+): Promise<{ sessionId: string; xpAwarded: number; breakdown: { label: string; xp: number }[]; newRank: Rank; rankedUp: boolean }> {
   const ref = await addDoc(collection(db, "sessions"), {
     ...session,
     endedAt: Date.now(),
   });
-  // increment counter
+
+  const profile = await getUserProfile(session.userId);
+  if (!profile) return { sessionId: ref.id, xpAwarded: 0, breakdown: [], newRank: "E", rankedUp: false };
+
+  const today = new Date().toISOString().split("T")[0];
+  const isFirstSessionToday = profile.lastSessionDate !== today;
+  const isCustom = !PRESET_SCENARIO_IDS.includes(session.scenarioId);
+
+  const { total, breakdown } = calculateSessionXP(
+    isCustom,
+    session.feedback ?? "",
+    isFirstSessionToday
+  );
+
+  const oldRank = profile.rank ?? "E";
+  const newXP = (profile.xp ?? 0) + total;
+  const newRank = getRankFromXP(newXP);
+  const rankedUp = newRank !== oldRank;
+
   await updateDoc(doc(db, "users", session.userId), {
-    sessionsCompleted:
-      (await getUserProfile(session.userId))!.sessionsCompleted + 1,
+    sessionsCompleted: profile.sessionsCompleted + 1,
+    xp: newXP,
+    rank: newRank,
+    lastSessionDate: today,
   });
-  return ref.id;
+
+  return { sessionId: ref.id, xpAwarded: total, breakdown, newRank, rankedUp };
 }
 
 export async function getUserSessions(
