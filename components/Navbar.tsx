@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { submitBugReport } from "@/lib/firebase";
@@ -13,7 +14,6 @@ import {
   ChevronDown,
   Menu,
   X,
-  Zap,
   Bug,
   CheckCircle2,
   Loader2,
@@ -89,9 +89,13 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 group">
-            <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center shadow-accent-sm group-hover:shadow-accent-md transition-shadow duration-300">
-              <Zap size={16} className="text-white" />
-            </div>
+            <Image 
+              src="/logo-512.png"
+              alt="JobReady logo"
+              width={32}
+              height={32}
+              className="rounded-lg"
+            />
             <span className="font-display font-700 text-lg tracking-tight text-text-primary">
               Job<span className="gradient-text-accent">Ready</span>
             </span>
