@@ -13,9 +13,32 @@ export interface ChangelogEntry {
 // what's stored in the user's localStorage.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.4.0",
+    date: "7th June 2026",
+    title: "CV Powered Interviews",
+    items: [
+      {
+        type: "new",
+        text: "Upload your CV on your profile page",
+      },
+      {
+        type: "new",
+        text: "Our AI tailors interview questions to your background and experience",
+      },
+      {
+        type: "new",
+        text: "CV loaded indicator shown during interviews",
+      },
+      {
+        type: "improved",
+        text: "Profile page now shows a preview of your extracted CV text",
+      },
+    ],
+  },
+  {
     version: "1.3.0",
     date: "June 2026",
-    title: "Leveling System 🎮",
+    title: "Leveling System",
     items: [
       {
         type: "new",
@@ -77,7 +100,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: "1.0.0",
     date: "June 2026",
-    title: "Initial Launch 🚀",
+    title: "Initial Launch",
     items: [
       {
         type: "new",
