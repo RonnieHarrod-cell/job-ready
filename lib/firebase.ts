@@ -28,10 +28,7 @@ import type {
   BugReport,
   Rank,
 } from "@/types";
-import {
-  getRankFromXP,
-  calculateSessionXP,
-} from "@/lib/ranks";
+import { getRankFromXP, calculateSessionXP } from "@/lib/ranks";
 
 const PRESET_SCENARIO_IDS = [
   "frontend-react-junior",
@@ -155,15 +152,28 @@ export async function deleteScenario(scenarioId: string, uid: string) {
 
 // sessions
 export async function saveSession(
-  session: Omit<InterviewSession, "id">
-): Promise<{ sessionId: string; xpAwarded: number; breakdown: { label: string; xp: number }[]; newRank: Rank; rankedUp: boolean }> {
+  session: Omit<InterviewSession, "id">,
+): Promise<{
+  sessionId: string;
+  xpAwarded: number;
+  breakdown: { label: string; xp: number }[];
+  newRank: Rank;
+  rankedUp: boolean;
+}> {
   const ref = await addDoc(collection(db, "sessions"), {
     ...session,
     endedAt: Date.now(),
   });
 
   const profile = await getUserProfile(session.userId);
-  if (!profile) return { sessionId: ref.id, xpAwarded: 0, breakdown: [], newRank: "E", rankedUp: false };
+  if (!profile)
+    return {
+      sessionId: ref.id,
+      xpAwarded: 0,
+      breakdown: [],
+      newRank: "E",
+      rankedUp: false,
+    };
 
   const today = new Date().toISOString().split("T")[0];
   const isFirstSessionToday = profile.lastSessionDate !== today;
@@ -206,25 +216,25 @@ export async function getUserSessions(
 export async function submitBugReport(
   report: Omit<BugReport, "id" | "status" | "createdAt">,
 ): Promise<string> {
-    const ref = await addDoc(collection(db, "bugs"), {
-        ...report,
-        status: "open",
-        createdAt: Date.now(),
-    });
-    return ref.id;
+  const ref = await addDoc(collection(db, "bugs"), {
+    ...report,
+    status: "open",
+    createdAt: Date.now(),
+  });
+  return ref.id;
 }
 
 export async function getBugReports(): Promise<BugReport[]> {
-    const q = query(collection(db, "bugs"), orderBy("createdAt", "desc"));
-    const snap = await getDocs(q);
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as BugReport));
+  const q = query(collection(db, "bugs"), orderBy("createdAt", "desc"));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as BugReport);
 }
 
 export async function updateBugStatus(
-    bugId: string,
-    status: BugReport["status"]
+  bugId: string,
+  status: BugReport["status"],
 ) {
-    await updateDoc(doc(db, "bugs", bugId), { status });
+  await updateDoc(doc(db, "bugs", bugId), { status });
 }
 
 export async function deleteBugReport(bugId: string) {

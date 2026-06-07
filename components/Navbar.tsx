@@ -17,11 +17,13 @@ import {
   Bug,
   CheckCircle2,
   Loader2,
+  UserCircle2,
 } from "lucide-react";
 import clsx from "clsx";
 
 const NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/profile", label: "Profile", icon: UserCircle2 },
   { href: "/scenarios/create", label: "New Scenario", icon: Plus },
 ];
 
@@ -89,7 +91,7 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 group">
-            <Image 
+            <Image
               src="/logo-512.png"
               alt="JobReady logo"
               width={32}
@@ -174,6 +176,14 @@ export default function Navbar() {
                           {user.email}
                         </p>
                       </div>
+                      <Link
+                        href="/profile"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors duration-150"
+                      >
+                        <UserCircle2 size={14} />
+                        Profile & Rank
+                      </Link>
                       <Link
                         href="/dashboard"
                         onClick={() => setDropdownOpen(false)}
