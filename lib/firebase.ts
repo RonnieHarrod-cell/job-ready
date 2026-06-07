@@ -182,7 +182,7 @@ export async function saveSession(
   const { total, breakdown } = calculateSessionXP(
     isCustom,
     session.feedback ?? "",
-    isFirstSessionToday
+    isFirstSessionToday,
   );
 
   const oldRank = profile.rank ?? "E";
@@ -239,4 +239,13 @@ export async function updateBugStatus(
 
 export async function deleteBugReport(bugId: string) {
   await deleteDoc(doc(db, "bugs", bugId));
+}
+
+// cv
+export async function saveCV(uid: string, text: string): Promise<void> {
+  await updateDoc(doc(db, "users", uid), { cvText: text });
+}
+
+export async function deleteCV(uid: string): Promise<void> {
+  await updateDoc(doc(db, "users", uid), { cvText: null });
 }
