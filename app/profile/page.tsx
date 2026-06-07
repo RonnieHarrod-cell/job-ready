@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import AuthModal from "@/components/AuthModal";
 import { useAuth } from "@/contexts/AuthContext";
-import { getUserSessions } from "@/lib/firebase";
+import { getUserSessions, saveCV, deleteCV } from "@/lib/firebase";
+import { extractTextFromPDF } from "@/lib/extractCV";
 import {
   getRankMeta,
   getNextRank,
@@ -23,6 +24,10 @@ import {
   TrendingUp,
   Star,
   Lock,
+  FileText,
+  Upload,
+  Trash2,
+  CheckCircle2,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -32,6 +37,9 @@ export default function ProfilePage() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [sessions, setSessions] = useState<InterviewSession[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [cvUploading, setCvUploading] = useState(false);
+  const [cvDeleting, setCvDeleting] = useState(false);
+  const [cvSuccess, setCvSuccess] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) setAuthModalOpen(true);
@@ -69,6 +77,42 @@ export default function ProfilePage() {
         year: "numeric",
       })
     : "—";
+
+  async function handleCVUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.type !== "application/pdf") {
+      alert("Please upload a PDF file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File must be under 5MB.");
+      return;
+    }
+    setCvUploading(true);
+    try {
+      const text = await extractTextFromPDF(file);
+      await saveCV(user.uid, text);
+      setCvSuccess(true);
+      setTimeout(() => setCvSuccess(false), 3000);
+    } catch (err) {
+      console.error("CV upload failed:", err);
+    } finally {
+      setCvUploading(false);
+    }
+  }
+
+  async function handleCVDelete() {
+    if (!user || !confirm("Remove your CV?")) return;
+    setCvDeleting(true);
+    try {
+      await deleteCV(user.uid);
+    } catch (err) {
+      console.error("CV delete failed:", err);
+    } finally {
+      setCvDeleting(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-bg-primary">
@@ -231,6 +275,124 @@ export default function ProfilePage() {
               <p className="text-xs text-text-muted">{label}</p>
             </div>
           ))}
+        </div>
+
+        {/* CV card */}
+        <div className="glass-card p-6">
+          <h2 className="font-display font-bold text-text-primary mb-1 flex items-center gap-2">
+            <FileText size={16} className="text-accent" />
+            Your CV
+          </h2>
+          <p className="text-sm text-text-secondary mb-5">
+            Upload your CV and the AI will tailor interview questions to your
+            actual experience and tech stack.
+          </p>
+
+          {profile?.cvText ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-bg-tertiary border border-border-default gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-lg bg-emerald-400/10 border border-emerald-400/20 flex items-center justify-center shrink-0">
+                    <CheckCircle2 size={15} className="text-emerald-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-text-primary">
+                      CV uploaded
+                    </p>
+                    <p className="text-xs text-text-muted">
+                      {profile.cvText.length.toLocaleString()} characters
+                      extracted
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <label className="btn-ghost text-xs px-3 py-1.5 cursor-pointer flex items-center gap-1.5">
+                    {cvUploading ? (
+                      <Loader2 size={11} className="animate-spin" />
+                    ) : (
+                      <Upload size={11} />
+                    )}
+                    {cvUploading ? "Uploading..." : "Replace"}
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      className="hidden"
+                      onChange={handleCVUpload}
+                      disabled={cvUploading}
+                    />
+                  </label>
+                  <button
+                    onClick={handleCVDelete}
+                    disabled={cvDeleting}
+                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-status-error hover:bg-status-error/10 border border-transparent hover:border-status-error/25 transition-all"
+                  >
+                    {cvDeleting ? (
+                      <Loader2 size={11} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={11} />
+                    )}
+                    Remove
+                  </button>
+                </div>
+              </div>
+
+              {/* Preview snippet */}
+              <div className="p-3 rounded-lg bg-bg-primary border border-border-subtle">
+                <p className="text-xs text-text-muted font-mono leading-relaxed line-clamp-3">
+                  {profile.cvText.slice(0, 300)}...
+                </p>
+              </div>
+            </div>
+          ) : (
+            <label
+              className={clsx(
+                "flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed transition-all cursor-pointer",
+                cvUploading
+                  ? "border-accent/40 bg-accent/5"
+                  : "border-border-default hover:border-accent/40 hover:bg-accent/5",
+              )}
+            >
+              <input
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={handleCVUpload}
+                disabled={cvUploading}
+              />
+              {cvUploading ? (
+                <>
+                  <Loader2
+                    size={24}
+                    className="text-accent animate-spin mb-3"
+                  />
+                  <p className="text-sm font-medium text-accent">
+                    Extracting text from PDF...
+                  </p>
+                  <p className="text-xs text-text-muted mt-1">
+                    This takes a few seconds
+                  </p>
+                </>
+              ) : cvSuccess ? (
+                <>
+                  <CheckCircle2
+                    size={24}
+                    className="text-status-success mb-3"
+                  />
+                  <p className="text-sm font-medium text-status-success">
+                    CV saved successfully!
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Upload size={24} className="text-text-muted mb-3" />
+                  <p className="text-sm font-medium text-text-primary mb-1">
+                    Upload your CV
+                  </p>
+                  <p className="text-xs text-text-muted">PDF only · Max 5MB</p>
+                </>
+              )}
+            </label>
+          )}
         </div>
 
         {/* ── Rank ladder ────────────────────────────────────────────────── */}

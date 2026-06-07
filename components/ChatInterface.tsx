@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  type KeyboardEvent,
-} from "react";
+import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { saveSession } from "@/lib/firebase";
 import {
@@ -26,6 +20,7 @@ import clsx from "clsx";
 interface ChatInterfaceProps {
   scenario: Scenario;
   code?: string; // current code editor value, injected into context
+  cvText?: string;
 }
 
 interface UIMessage {
@@ -35,7 +30,11 @@ interface UIMessage {
   timestamp: number;
 }
 
-export default function ChatInterface({ scenario, code }: ChatInterfaceProps) {
+export default function ChatInterface({
+  scenario,
+  code,
+  cvText,
+}: ChatInterfaceProps) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [input, setInput] = useState("");
@@ -124,6 +123,11 @@ export default function ChatInterface({ scenario, code }: ChatInterfaceProps) {
       codeContext = `\n\n[Candidate's current code]\n\`\`\`${scenario.language ?? ""}\n${code}\n\`\`\``;
     }
 
+    let cvContext = "";
+    if (cvText) {
+      cvContext = `\n\n[Candidate's CV - use this to personalise your questions to their background and experience.]\n${cvText}`;
+    }
+
     setStreaming(true);
     abortRef.current = new AbortController();
 
@@ -146,7 +150,7 @@ export default function ChatInterface({ scenario, code }: ChatInterfaceProps) {
         signal: abortRef.current.signal,
         body: JSON.stringify({
           messages: apiMessages,
-          systemPrompt: scenario.systemPrompt + codeContext,
+          systemPrompt: scenario.systemPrompt + codeContext + cvContext,
         }),
       });
 
@@ -398,12 +402,7 @@ export default function ChatInterface({ scenario, code }: ChatInterfaceProps) {
           </button>
         )}
       </div>
-      {xpToast && (
-        <XPToast
-          {...xpToast}
-          onClose={() => setXpToast(null)}
-        />
-      )}
+      {xpToast && <XPToast {...xpToast} onClose={() => setXpToast(null)} />}
     </div>
   );
 }

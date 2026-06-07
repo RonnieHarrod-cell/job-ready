@@ -9,7 +9,7 @@ import AuthModal from "@/components/AuthModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { getScenarioById } from "@/lib/scenarios";
 import { getDoc, doc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, getUserProfile } from "@/lib/firebase";
 import type { Scenario } from "@/types";
 import {
   ChevronLeft,
@@ -18,6 +18,7 @@ import {
   Loader2,
   PanelLeftClose,
   PanelLeftOpen,
+  FileText,
 } from "lucide-react";
 import { CATEGORY_META, DIFFICULTY_META } from "@/lib/scenarios";
 import clsx from "clsx";
@@ -37,6 +38,7 @@ export default function InterviewPage({ params }: PageProps) {
   const [code, setCode] = useState<string>("");
   const [codeVisible, setCodeVisible] = useState(true);
   const [mobileTab, setMobileTab] = useState<"chat" | "code">("chat");
+  const [cvText, setCvText] = useState<string>("");
 
   // Load scenario — check presets first, then Firestore for custom
   useEffect(() => {
@@ -77,6 +79,13 @@ export default function InterviewPage({ params }: PageProps) {
   useEffect(() => {
     if (scenario && !scenario.hasCode) setCodeVisible(false);
   }, [scenario]);
+
+  useEffect(() => {
+    if (!user) return;
+    getUserProfile(user.uid).then((p) => {
+      if (p?.cvText) setCvText(p.cvText);
+    });
+  }, [user]);
 
   if (authLoading || scenarioLoading) {
     return (
@@ -153,6 +162,12 @@ export default function InterviewPage({ params }: PageProps) {
               </button>
             )}
           </div>
+          {cvText && (
+            <div className="hidden md:flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2.5 py-1 rounded-lg">
+              <FileText size={11} />
+              CV loaded
+            </div>
+          )}
         </div>
       </div>
 
@@ -218,6 +233,7 @@ export default function InterviewPage({ params }: PageProps) {
                 key={scenario.id}
                 scenario={scenario}
                 code={code}
+                cvText={cvText}
               />
             )}
           </div>
@@ -234,6 +250,7 @@ export default function InterviewPage({ params }: PageProps) {
                   key={`${scenario.id}-mobile`}
                   scenario={scenario}
                   code={code}
+                  cvText={cvText}
                 />
               )
             : scenario.hasCode && (
