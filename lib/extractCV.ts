@@ -5,8 +5,15 @@ export async function extractTextFromPDF(file: File): Promise<string> {
   pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
+  const loadingTask = pdfjsLib.getDocument({
+    data: new Uint8Array(arrayBuffer),
+    useWorkerFetch: false,
+    isEvalSupported: false,
+    useSystemFonts: true,
+  });
+
+  const pdf = await loadingTask.promise;
   let fullText = "";
 
   for (let i = 1; i <= pdf.numPages; i++) {
