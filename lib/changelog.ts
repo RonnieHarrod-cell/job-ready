@@ -13,6 +13,17 @@ export interface ChangelogEntry {
 // what's stored in the user's localStorage.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.4.1",
+    date: "8th June 2026",
+    title: "Fixed CV Upload",
+    items: [
+      {
+        type: "fixed",
+        text: "Fixed CV upload on profile page",
+      },
+    ],
+  },
+  {
     version: "1.4.0",
     date: "7th June 2026",
     title: "CV Powered Interviews",
