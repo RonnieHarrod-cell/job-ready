@@ -2,7 +2,7 @@ export async function extractTextFromPDF(file: File): Promise<string> {
   const pdfjsLib = await import("pdfjs-dist");
 
   // point worker at the CDN
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudfare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
